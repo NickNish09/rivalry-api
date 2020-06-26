@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Rivalry API",
   "scripts": {
-    "start": "node ./src/index.js"
+    "start": "nodemon ./src/index.js"
   },
   "main": "index.js",
   "license": "MIT",
