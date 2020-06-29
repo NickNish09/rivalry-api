@@ -50,8 +50,12 @@ router.post("/", async (req, res) => {
         if (typeof rival === "string") {
           // if the rival param is a _id of the rival
           const envolvedRival = await Rival.findById(rival);
+
+          envolvedRival.rivalries.push(rivalry);
+          await envolvedRival.save();
           rivalry.rivals.push(envolvedRival);
         } else {
+          // if the rival param is a object create the rival and push it to the relation
           const envolvedRival = new Rival({ ...rival });
 
           envolvedRival.rivalries.push(rivalry);
