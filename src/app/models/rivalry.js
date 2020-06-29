@@ -3,16 +3,16 @@ const mongoose = require("../../database");
 const RivalrySchema = new mongoose.Schema({
   title: {
     type: String,
-    require: true,
+    required: true,
   },
   about: {
     type: String,
-    require: true,
+    required: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectID,
     ref: "User",
-    require: true,
+    required: true,
   },
   rivals: [
     {

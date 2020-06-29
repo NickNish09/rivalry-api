@@ -10,7 +10,10 @@ router.use(authMiddleware);
 //index
 router.get("/", async (req, res) => {
   try {
-    const rivalries = await Rivalry.find().populate("user");
+    const rivalries = await Rivalry.find().populate([
+      { path: "user", select: "name _id email" },
+      { path: "rivals", select: "name about" },
+    ]);
 
     return res.send({ rivalries });
   } catch (err) {
@@ -21,9 +24,10 @@ router.get("/", async (req, res) => {
 //show
 router.get("/:rivalryId", async (req, res) => {
   try {
-    const rivalry = await Rivalry.findById(req.params.rivalryId)
-      .populate({ path: "user", select: "name _id email" })
-      .populate({ path: "rivals", select: "name about" });
+    const rivalry = await Rivalry.findById(req.params.rivalryId).populate([
+      { path: "user", select: "name _id email" },
+      { path: "rivals", select: "name about" },
+    ]);
 
     return res.send({ rivalry });
   } catch (err) {
@@ -43,11 +47,17 @@ router.post("/", async (req, res) => {
 
     await Promise.all(
       rivals.map(async (rival) => {
-        const envolvedRival = new Rival({ ...rival });
+        if (typeof rival === "string") {
+          // if the rival param is a _id of the rival
+          const envolvedRival = await Rival.findById(rival);
+          rivalry.rivals.push(envolvedRival);
+        } else {
+          const envolvedRival = new Rival({ ...rival });
 
-        envolvedRival.rivalries.push(rivalry);
-        await envolvedRival.save();
-        rivalry.rivals.push(envolvedRival);
+          envolvedRival.rivalries.push(rivalry);
+          await envolvedRival.save();
+          rivalry.rivals.push(envolvedRival);
+        }
       })
     );
 
@@ -55,6 +65,7 @@ router.post("/", async (req, res) => {
 
     return res.send({ rivalry });
   } catch (err) {
+    console.log(err);
     return res
       .status(400)
       .send({ error: "Error creating a new rivalry. Try again." });
@@ -63,7 +74,37 @@ router.post("/", async (req, res) => {
 
 //update
 router.put("/:rivalryId", async (req, res) => {
-  res.send({ user: req.userId });
+  try {
+    const { title, about, rivals } = req.body;
+    const rivalry = await Rivalry.findByIdAndUpdate(
+      req.params.rivalryId,
+      {
+        title,
+        about,
+      },
+      { new: true }
+    );
+
+    // await Promise.all(
+    //   rivals.map(async (rival) => {
+    //     // TODO get rival already created and associate if exists
+    //     const envolvedRival = new Rival({ ...rival });
+    //
+    //     envolvedRival.rivalries.push(rivalry);
+    //     await envolvedRival.save();
+    //     rivalry.rivals.push(envolvedRival);
+    //   })
+    // );
+    //
+    // await rivalry.save();
+
+    return res.send({ rivalry });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(400)
+      .send({ error: "Error creating a new rivalry. Try again." });
+  }
 });
 
 //delete

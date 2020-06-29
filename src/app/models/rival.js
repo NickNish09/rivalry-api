@@ -3,11 +3,10 @@ const mongoose = require("../../database");
 const RivalSchema = new mongoose.Schema({
   name: {
     type: String,
-    require: true,
+    required: true,
   },
   about: {
     type: String,
-    require: true,
   },
   rivalries: [
     {
