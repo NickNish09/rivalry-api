@@ -1,5 +1,11 @@
 const mongoose = require("../../database");
 
+function rivalsCount(val) {
+  console.log("valor");
+  console.log(val);
+  return val.length >= 2;
+}
+
 const RivalrySchema = new mongoose.Schema({
   title: {
     type: String,
@@ -14,12 +20,10 @@ const RivalrySchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  rivals: [
-    {
-      type: mongoose.Schema.Types.ObjectID,
-      ref: "Rival",
-    },
-  ],
+  rivals: {
+    type: [{ type: mongoose.Schema.Types.ObjectID, ref: "Rival" }],
+    validate: [rivalsCount, "The rivalry should envolve at least 2 rivals"],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

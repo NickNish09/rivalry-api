@@ -39,7 +39,7 @@ router.get("/:rivalryId", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { title, about, rivals } = req.body;
-    const rivalry = await Rivalry.create({
+    const rivalry = new Rivalry({
       title,
       about,
       user: req.userId,
@@ -69,10 +69,11 @@ router.post("/", async (req, res) => {
 
     return res.send({ rivalry });
   } catch (err) {
+    let errorMsg = err.errors.rivals.properties.message;
     console.log(err);
     return res
       .status(400)
-      .send({ error: "Error creating a new rivalry. Try again." });
+      .send({ error: `Error creating a new rivalry. ${errorMsg}` });
   }
 });
 
