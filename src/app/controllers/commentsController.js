@@ -90,4 +90,19 @@ router.delete("/:commentId", authMiddleware, async (req, res) => {
   }
 });
 
+//like a comment
+router.post("/like/:commentId", authMiddleware, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    comment.likes.push(req.userId); //adds the user ID to the likes array of the comment
+
+    await comment.save();
+    return res.send({ comment });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ error: "Error liking comment." });
+  }
+});
+
 module.exports = (app) => app.use("/comments", router);
