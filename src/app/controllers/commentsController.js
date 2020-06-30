@@ -95,7 +95,14 @@ router.post("/like/:commentId", authMiddleware, async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.commentId);
 
-    comment.likes.push(req.userId); //adds the user ID to the likes array of the comment
+    if (comment.likes.includes(req.userId)) {
+      //checks if the user already liked, in this case, deslike the comment
+      comment.likes = comment.likes.filter(
+        (el) => el.toString() !== req.userId.toString()
+      );
+    } else {
+      comment.likes.push(req.userId); //adds the user ID to the likes array of the comment
+    }
 
     await comment.save();
     return res.send({ comment });
