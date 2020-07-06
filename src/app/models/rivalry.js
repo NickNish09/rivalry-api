@@ -9,7 +9,7 @@ function rivalsCount(val) {
 const RivalrySchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true,
+    // required: true,
   },
   about: {
     type: String,

@@ -38,12 +38,13 @@ router.get("/:rivalryId", async (req, res) => {
 //create
 router.post("/", async (req, res) => {
   try {
-    const { title, about, rivals } = req.body;
+    const { title, about, rivals, tags } = req.body;
     const rivalry = new Rivalry({
       title,
       about,
       user: req.userId,
     });
+    console.log(tags);
 
     await Promise.all(
       rivals.map(async (rival) => {
