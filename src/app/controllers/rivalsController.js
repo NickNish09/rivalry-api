@@ -18,6 +18,22 @@ router.get("/", async (req, res) => {
   }
 });
 
+//search rival
+router.get("/search", async (req, res) => {
+  // console.log(req.query);
+  // return res.send({ options: [] });
+  let regex = RegExp(`.*^${req.query.name.toLowerCase()}.*`, "i");
+  try {
+    const rivals = await Rival.find({
+      name: regex,
+    });
+
+    return res.send({ rivals });
+  } catch (err) {
+    res.status(400).send({ error: "Error at searching rivals" });
+  }
+});
+
 //show
 router.get("/:rivalId", async (req, res) => {
   try {
