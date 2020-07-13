@@ -49,11 +49,13 @@ const createRival = (rival, rivalry) => {
 //index
 router.get("/", async (req, res) => {
   try {
-    const rivalries = await Rivalry.find().populate([
-      { path: "user", select: "name _id email" },
-      { path: "rivals", select: "name about imageUrl" },
-      { path: "tags", select: "name" },
-    ]);
+    const rivalries = await Rivalry.find()
+      .sort({ createdAt: -1 }) // order by most recent
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
 
     return res.send({ rivalries });
   } catch (err) {
