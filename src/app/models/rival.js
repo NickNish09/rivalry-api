@@ -4,9 +4,15 @@ const RivalSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   about: {
     type: String,
+  },
+  imageUrl: {
+    type: String,
+    default:
+      "https://instantmockup.herokuapp.com/images/default-placeholder.png",
   },
   rivalries: [
     {

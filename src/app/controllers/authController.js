@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const mailer = require("../../modules/mailer");
-
+const { API_VERSION } = require("../../config/constants");
 const authConfig = require("../../config/auth");
 
 const User = require("../models/user");
@@ -118,4 +118,4 @@ router.post("/reset_password", async (req, res) => {
   }
 });
 
-module.exports = (app) => app.use("/auth", router);
+module.exports = (app) => app.use(`/${API_VERSION}/auth`, router);
