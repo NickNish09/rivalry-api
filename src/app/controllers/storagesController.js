@@ -1,6 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
-
+const { API_VERSION } = require("../../config/constants");
 const router = express.Router();
 
 //create
@@ -26,4 +26,4 @@ router.put("/:fileId", async (req, res) => {
   }
 });
 
-module.exports = (app) => app.use("/uploads", router);
+module.exports = (app) => app.use(`/${API_VERSION}/uploads`, router);

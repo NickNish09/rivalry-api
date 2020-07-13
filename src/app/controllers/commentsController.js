@@ -1,3 +1,5 @@
+const { API_VERSION } = require("../../config/constants");
+
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 
@@ -112,4 +114,4 @@ router.post("/like/:commentId", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = (app) => app.use("/comments", router);
+module.exports = (app) => app.use(`/${API_VERSION}/comments`, router);

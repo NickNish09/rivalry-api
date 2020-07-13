@@ -1,5 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
+const { API_VERSION } = require("../../config/constants");
 
 const router = express.Router();
 const Rival = require("../models/rival");
@@ -124,4 +125,4 @@ router.delete("/:rivalryId", async (req, res) => {
   }
 });
 
-module.exports = (app) => app.use("/rivalries", router);
+module.exports = (app) => app.use(`/${API_VERSION}/rivalries`, router);
