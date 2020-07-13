@@ -24,6 +24,12 @@ const RivalrySchema = new mongoose.Schema({
     type: [{ type: mongoose.Schema.Types.ObjectID, ref: "Rival" }],
     validate: [rivalsCount, "The rivalry should envolve at least 2 rivals"],
   },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectID,
+      ref: "User",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

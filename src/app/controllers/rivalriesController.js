@@ -6,7 +6,7 @@ const router = express.Router();
 const Rival = require("../models/rival");
 const Rivalry = require("../models/rivalry");
 
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 //index
 router.get("/", async (req, res) => {
@@ -37,7 +37,7 @@ router.get("/:rivalryId", async (req, res) => {
 });
 
 //create
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const { title, about, rivals, tags } = req.body;
     const rivalry = new Rivalry({
@@ -80,7 +80,7 @@ router.post("/", async (req, res) => {
 });
 
 //update
-router.put("/:rivalryId", async (req, res) => {
+router.put("/:rivalryId", authMiddleware, async (req, res) => {
   try {
     const { title, about, rivals } = req.body;
     const rivalry = await Rivalry.findByIdAndUpdate(
@@ -115,13 +115,37 @@ router.put("/:rivalryId", async (req, res) => {
 });
 
 //delete
-router.delete("/:rivalryId", async (req, res) => {
+router.delete("/:rivalryId", authMiddleware, async (req, res) => {
   try {
     await Rivalry.findByIdAndRemove(req.params.rivalryId);
 
     return res.send({ msg: "Rivalry deleted" });
   } catch (err) {
     res.status(400).send({ error: "Error at deleting rivalry" });
+  }
+});
+
+//like a rivalry
+router.post("/like/:rivalryId", authMiddleware, async (req, res) => {
+  try {
+    const rivalry = await Rivalry.findById(req.params.rivalryId);
+
+    if (rivalry.likes.includes(req.userId)) {
+      //checks if the user already liked, in this case, deslike the rivalry
+      rivalry.likes = rivalry.likes.filter(
+        (el) => el.toString() !== req.userId.toString()
+      );
+    } else {
+      rivalry.likes.push(req.userId); //adds the user ID to the likes array of the rivalry
+    }
+
+    console.log(rivalry);
+
+    await rivalry.save();
+    return res.send({ rivalry });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ error: "Error liking rivalry." });
   }
 });
 
