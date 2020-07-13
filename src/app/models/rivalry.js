@@ -9,7 +9,7 @@ function rivalsCount(val) {
 const RivalrySchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true,
+    // required: true,
   },
   about: {
     type: String,
@@ -24,6 +24,18 @@ const RivalrySchema = new mongoose.Schema({
     type: [{ type: mongoose.Schema.Types.ObjectID, ref: "Rival" }],
     validate: [rivalsCount, "The rivalry should envolve at least 2 rivals"],
   },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectID,
+      ref: "User",
+    },
+  ],
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectID,
+      ref: "Tag",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
