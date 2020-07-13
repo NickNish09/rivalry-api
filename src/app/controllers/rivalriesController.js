@@ -51,6 +51,8 @@ router.post("/", authMiddleware, async (req, res) => {
 
     await Promise.all(
       rivals.map(async (rival) => {
+        console.log("rival: ");
+        console.log(rival);
         if (typeof rival === "string") {
           // if the rival param is a _id of the rival
           const envolvedRival = await Rival.findById(rival);
