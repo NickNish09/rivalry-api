@@ -30,6 +30,12 @@ const RivalrySchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectID,
+      ref: "Tag",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

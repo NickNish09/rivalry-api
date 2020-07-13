@@ -5,6 +5,7 @@ const { API_VERSION } = require("../../config/constants");
 const router = express.Router();
 const Rival = require("../models/rival");
 const Rivalry = require("../models/rivalry");
+const Tag = require("../models/tag");
 
 // router.use(authMiddleware);
 
@@ -14,6 +15,7 @@ router.get("/", async (req, res) => {
     const rivalries = await Rivalry.find().populate([
       { path: "user", select: "name _id email" },
       { path: "rivals", select: "name about" },
+      { path: "tags", select: "name" },
     ]);
 
     return res.send({ rivalries });
@@ -28,6 +30,7 @@ router.get("/:rivalryId", async (req, res) => {
     const rivalry = await Rivalry.findById(req.params.rivalryId).populate([
       { path: "user", select: "name _id email" },
       { path: "rivals", select: "name about" },
+      { path: "tags", select: "name" },
     ]);
 
     return res.send({ rivalry });
@@ -45,7 +48,6 @@ router.post("/", authMiddleware, async (req, res) => {
       about,
       user: req.userId,
     });
-    console.log(tags);
 
     await Promise.all(
       rivals.map(async (rival) => {
@@ -63,6 +65,25 @@ router.post("/", authMiddleware, async (req, res) => {
           envolvedRival.rivalries.push(rivalry);
           await envolvedRival.save();
           rivalry.rivals.push(envolvedRival);
+        }
+      })
+    );
+
+    await Promise.all(
+      tags.map(async (tag) => {
+        const envolvedTag = await Tag.findOne({ name: tag });
+        if (envolvedTag) {
+          //found the tag, associate with rivalry
+          envolvedTag.rivalries.push(rivalry);
+          await envolvedTag.save();
+          rivalry.tags.push(envolvedTag);
+        } else {
+          // create the tag and associate
+          const envolvedTag = new Tag({ name: tag });
+
+          envolvedTag.rivalries.push(rivalry);
+          await envolvedTag.save();
+          rivalry.tags.push(envolvedTag);
         }
       })
     );
