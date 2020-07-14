@@ -19,7 +19,8 @@
     "mongoose": "^5.9.20",
     "nodemailer": "^6.4.10",
     "nodemailer-express-handlebars": "^4.0.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "sharp": "^0.25.4"
   },
   "devDependencies": {
     "prettier": "2.0.5"

@@ -7,6 +7,7 @@ const router = express.Router();
 const Rival = require("../models/rival");
 const Rivalry = require("../models/rivalry");
 const Tag = require("../models/tag");
+const sharp = require("sharp");
 
 const AWS = require("aws-sdk");
 const credentials = require("../../config/s3_config");
@@ -14,37 +15,80 @@ AWS.config.credentials = credentials;
 const s3Bucket = new AWS.S3({ params: { Bucket: BUCKET_NAME } });
 // router.use(authMiddleware);
 
-const createRival = (rival, rivalry) => {
+const createRival = async (rival, rivalry) => {
   const envolvedRival = new Rival({ ...rival });
-  buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
-  let key = `${Date.now().toString()}_${rival.image_name}`;
-  const data = {
-    Key: key,
-    Body: buf,
-    ACL: "public-read",
-    ContentEncoding: "base64",
-    ContentType: "image/jpeg",
-  };
+  if (rival.image_url !== undefined) {
+    let buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
+    let bufResized = await sharp(buf).resize(400, 330).toBuffer(); // resize before upload
+    let key = `${Date.now().toString()}_${rival.image_name}`;
+    const data = {
+      Key: key,
+      Body: bufResized,
+      ACL: "public-read",
+      ContentEncoding: "base64",
+      ContentType: "image/jpeg",
+    };
 
-  return new Promise((resolve) => {
-    s3Bucket.putObject(data, function (err, data) {
-      try {
-        if (err) {
-          console.log(err);
-          console.log("Error uploading data: ", data);
-          throw "Error uploading data";
-        } else {
-          console.log("succesfully uploaded the image!");
-          envolvedRival.imageUrl = awsResourceUrl(key);
-          envolvedRival.rivalries.push(rivalry);
-          resolve(envolvedRival);
+    return new Promise((resolve) => {
+      s3Bucket.putObject(data, function (err, data) {
+        try {
+          if (err) {
+            console.log(err);
+            console.log("Error uploading data: ", data);
+            throw "Error uploading data";
+          } else {
+            console.log("succesfully uploaded the image!");
+            envolvedRival.imageUrl = awsResourceUrl(key);
+            envolvedRival.rivalries.push(rivalry);
+            resolve(envolvedRival);
+          }
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
+      });
     });
-  });
+  } else {
+    return new Promise((resolve) => {
+      envolvedRival.rivalries.push(rivalry);
+      resolve(envolvedRival);
+    });
+  }
 };
+
+//trending rivalries
+router.get("/trending", async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find()
+      .limit(2)
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals.rival", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
+
+//top rivalries
+router.get("/top", async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find()
+      .sort({ likesCount: "desc" })
+      .limit(3)
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals.rival", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
 
 //index
 router.get("/", async (req, res) => {
@@ -53,7 +97,7 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 }) // order by most recent
       .populate([
         { path: "user", select: "name _id email" },
-        { path: "rivals", select: "name about imageUrl" },
+        { path: "rivals.rival", select: "name about imageUrl" },
         { path: "tags", select: "name" },
       ]);
 
@@ -68,7 +112,7 @@ router.get("/:rivalryId", async (req, res) => {
   try {
     const rivalry = await Rivalry.findById(req.params.rivalryId).populate([
       { path: "user", select: "name _id email" },
-      { path: "rivals", select: "name about imageUrl" },
+      { path: "rivals.rival", select: "name about imageUrl" },
       { path: "tags", select: "name" },
     ]);
 
@@ -81,7 +125,9 @@ router.get("/:rivalryId", async (req, res) => {
 //create
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { title, about, rivals, tags } = req.body;
+    const { about, rivals, tags } = req.body;
+    const title = `${rivals[0].name} x ${rivals[1].name}`;
+
     const rivalry = new Rivalry({
       title,
       about,
@@ -98,7 +144,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
           envolvedRival.rivalries.push(rivalry);
           await envolvedRival.save();
-          rivalry.rivals.push(envolvedRival);
+          rivalry.rivals.push({ rival: envolvedRival });
         } else {
           // if the rival param is a object create the rival and push it to the relation
           let envolvedRival = await Rival.findOne({ name: rival.name });
@@ -108,29 +154,31 @@ router.post("/", authMiddleware, async (req, res) => {
             envolvedRival = await createRival(rival, rivalry);
             await envolvedRival.save();
           }
-          rivalry.rivals.push(envolvedRival);
+          rivalry.rivals.push({ rival: envolvedRival });
         }
       })
     );
 
-    await Promise.all(
-      tags.map(async (tag) => {
-        const envolvedTag = await Tag.findOne({ name: tag });
-        if (envolvedTag) {
-          //found the tag, associate with rivalry
-          envolvedTag.rivalries.push(rivalry);
-          await envolvedTag.save();
-          rivalry.tags.push(envolvedTag);
-        } else {
-          // create the tag and associate
-          const envolvedTag = new Tag({ name: tag });
+    if (tags !== undefined) {
+      await Promise.all(
+        tags.map(async (tag) => {
+          const envolvedTag = await Tag.findOne({ name: tag });
+          if (envolvedTag) {
+            //found the tag, associate with rivalry
+            envolvedTag.rivalries.push(rivalry);
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          } else {
+            // create the tag and associate
+            const envolvedTag = new Tag({ name: tag });
 
-          envolvedTag.rivalries.push(rivalry);
-          await envolvedTag.save();
-          rivalry.tags.push(envolvedTag);
-        }
-      })
-    );
+            envolvedTag.rivalries.push(rivalry);
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          }
+        })
+      );
+    }
 
     await rivalry.save();
 
@@ -200,8 +248,10 @@ router.post("/like/:rivalryId", authMiddleware, async (req, res) => {
       rivalry.likes = rivalry.likes.filter(
         (el) => el.toString() !== req.userId.toString()
       );
+      rivalry.likesCount -= 1; // update like count
     } else {
       rivalry.likes.push(req.userId); //adds the user ID to the likes array of the rivalry
+      rivalry.likesCount += 1;
     }
 
     console.log(rivalry);
