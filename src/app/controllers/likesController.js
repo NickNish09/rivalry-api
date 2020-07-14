@@ -4,9 +4,7 @@ const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 
 const router = express.Router();
-const Rival = require("../models/rival");
 const Rivalry = require("../models/rivalry");
-const Comment = require("../models/comment");
 
 const destarRival = (rival, userId) => {
   rival.stars -= 1;
@@ -27,6 +25,24 @@ router.get("/hasLikedRivalry/:rivalryId", authMiddleware, async (req, res) => {
     }
 
     return res.send({ hasLiked: false });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send({ error: `Error checking like status.` });
+  }
+});
+
+// which rival user has stared in rivalry
+router.get("/rivalStared/:rivalryId", authMiddleware, async (req, res) => {
+  try {
+    const rivalry = await Rivalry.findById(req.params.rivalryId);
+
+    rivalry.rivals.map((rival) => {
+      if (rival.starsUserIds.includes(req.userId)) {
+        return res.send({ rival: rival.rival }); // sends the rival ._id
+      }
+    });
+
+    return res.send({ rival: null }); // has not stared any rival
   } catch (err) {
     console.log(err);
     return res.status(400).send({ error: `Error checking like status.` });
