@@ -67,6 +67,7 @@ router.get("/trending", async (req, res) => {
 router.get("/top", async (req, res) => {
   try {
     const rivalries = await Rivalry.find()
+      .sort({ likesCount: "desc" })
       .limit(3)
       .populate([
         { path: "user", select: "name _id email" },
@@ -236,8 +237,10 @@ router.post("/like/:rivalryId", authMiddleware, async (req, res) => {
       rivalry.likes = rivalry.likes.filter(
         (el) => el.toString() !== req.userId.toString()
       );
+      rivalry.likesCount -= 1; // update like count
     } else {
       rivalry.likes.push(req.userId); //adds the user ID to the likes array of the rivalry
+      rivalry.likesCount += 1;
     }
 
     console.log(rivalry);
