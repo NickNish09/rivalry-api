@@ -7,6 +7,7 @@ const router = express.Router();
 const Rival = require("../models/rival");
 const Rivalry = require("../models/rivalry");
 const Tag = require("../models/tag");
+const sharp = require("sharp");
 
 const AWS = require("aws-sdk");
 const credentials = require("../../config/s3_config");
@@ -14,13 +15,14 @@ AWS.config.credentials = credentials;
 const s3Bucket = new AWS.S3({ params: { Bucket: BUCKET_NAME } });
 // router.use(authMiddleware);
 
-const createRival = (rival, rivalry) => {
+const createRival = async (rival, rivalry) => {
   const envolvedRival = new Rival({ ...rival });
-  buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
+  let buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
+  let bufResized = await sharp(buf).resize(400, 330).toBuffer();
   let key = `${Date.now().toString()}_${rival.image_name}`;
   const data = {
     Key: key,
-    Body: buf,
+    Body: bufResized,
     ACL: "public-read",
     ContentEncoding: "base64",
     ContentType: "image/jpeg",
