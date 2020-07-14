@@ -17,35 +17,42 @@ const s3Bucket = new AWS.S3({ params: { Bucket: BUCKET_NAME } });
 
 const createRival = async (rival, rivalry) => {
   const envolvedRival = new Rival({ ...rival });
-  let buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
-  let bufResized = await sharp(buf).resize(400, 330).toBuffer();
-  let key = `${Date.now().toString()}_${rival.image_name}`;
-  const data = {
-    Key: key,
-    Body: bufResized,
-    ACL: "public-read",
-    ContentEncoding: "base64",
-    ContentType: "image/jpeg",
-  };
+  if (rival.image_url !== undefined) {
+    let buf = Buffer.from(rival.image_url, "base64"); //rival.image_url has the base64 formated string of the image
+    let bufResized = await sharp(buf).resize(400, 330).toBuffer(); // resize before upload
+    let key = `${Date.now().toString()}_${rival.image_name}`;
+    const data = {
+      Key: key,
+      Body: bufResized,
+      ACL: "public-read",
+      ContentEncoding: "base64",
+      ContentType: "image/jpeg",
+    };
 
-  return new Promise((resolve) => {
-    s3Bucket.putObject(data, function (err, data) {
-      try {
-        if (err) {
-          console.log(err);
-          console.log("Error uploading data: ", data);
-          throw "Error uploading data";
-        } else {
-          console.log("succesfully uploaded the image!");
-          envolvedRival.imageUrl = awsResourceUrl(key);
-          envolvedRival.rivalries.push(rivalry);
-          resolve(envolvedRival);
+    return new Promise((resolve) => {
+      s3Bucket.putObject(data, function (err, data) {
+        try {
+          if (err) {
+            console.log(err);
+            console.log("Error uploading data: ", data);
+            throw "Error uploading data";
+          } else {
+            console.log("succesfully uploaded the image!");
+            envolvedRival.imageUrl = awsResourceUrl(key);
+            envolvedRival.rivalries.push(rivalry);
+            resolve(envolvedRival);
+          }
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
+      });
     });
-  });
+  } else {
+    return new Promise((resolve) => {
+      envolvedRival.rivalries.push(rivalry);
+      resolve(envolvedRival);
+    });
+  }
 };
 
 //trending rivalries
@@ -55,7 +62,7 @@ router.get("/trending", async (req, res) => {
       .limit(2)
       .populate([
         { path: "user", select: "name _id email" },
-        { path: "rivals", select: "name about imageUrl" },
+        { path: "rivals.rival", select: "name about imageUrl" },
         { path: "tags", select: "name" },
       ]);
 
@@ -73,7 +80,7 @@ router.get("/top", async (req, res) => {
       .limit(3)
       .populate([
         { path: "user", select: "name _id email" },
-        { path: "rivals", select: "name about imageUrl" },
+        { path: "rivals.rival", select: "name about imageUrl" },
         { path: "tags", select: "name" },
       ]);
 
@@ -90,7 +97,7 @@ router.get("/", async (req, res) => {
       .sort({ createdAt: -1 }) // order by most recent
       .populate([
         { path: "user", select: "name _id email" },
-        { path: "rivals", select: "name about imageUrl" },
+        { path: "rivals.rival", select: "name about imageUrl" },
         { path: "tags", select: "name" },
       ]);
 
@@ -105,7 +112,7 @@ router.get("/:rivalryId", async (req, res) => {
   try {
     const rivalry = await Rivalry.findById(req.params.rivalryId).populate([
       { path: "user", select: "name _id email" },
-      { path: "rivals", select: "name about imageUrl" },
+      { path: "rivals.rival", select: "name about imageUrl" },
       { path: "tags", select: "name" },
     ]);
 
@@ -137,7 +144,7 @@ router.post("/", authMiddleware, async (req, res) => {
 
           envolvedRival.rivalries.push(rivalry);
           await envolvedRival.save();
-          rivalry.rivals.push(envolvedRival);
+          rivalry.rivals.push({ rival: envolvedRival });
         } else {
           // if the rival param is a object create the rival and push it to the relation
           let envolvedRival = await Rival.findOne({ name: rival.name });
@@ -147,29 +154,31 @@ router.post("/", authMiddleware, async (req, res) => {
             envolvedRival = await createRival(rival, rivalry);
             await envolvedRival.save();
           }
-          rivalry.rivals.push(envolvedRival);
+          rivalry.rivals.push({ rival: envolvedRival });
         }
       })
     );
 
-    await Promise.all(
-      tags.map(async (tag) => {
-        const envolvedTag = await Tag.findOne({ name: tag });
-        if (envolvedTag) {
-          //found the tag, associate with rivalry
-          envolvedTag.rivalries.push(rivalry);
-          await envolvedTag.save();
-          rivalry.tags.push(envolvedTag);
-        } else {
-          // create the tag and associate
-          const envolvedTag = new Tag({ name: tag });
+    if (tags !== undefined) {
+      await Promise.all(
+        tags.map(async (tag) => {
+          const envolvedTag = await Tag.findOne({ name: tag });
+          if (envolvedTag) {
+            //found the tag, associate with rivalry
+            envolvedTag.rivalries.push(rivalry);
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          } else {
+            // create the tag and associate
+            const envolvedTag = new Tag({ name: tag });
 
-          envolvedTag.rivalries.push(rivalry);
-          await envolvedTag.save();
-          rivalry.tags.push(envolvedTag);
-        }
-      })
-    );
+            envolvedTag.rivalries.push(rivalry);
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          }
+        })
+      );
+    }
 
     await rivalry.save();
 

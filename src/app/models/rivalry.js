@@ -21,7 +21,13 @@ const RivalrySchema = new mongoose.Schema({
     required: true,
   },
   rivals: {
-    type: [{ type: mongoose.Schema.Types.ObjectID, ref: "Rival" }],
+    type: [
+      {
+        rival: { type: mongoose.Schema.Types.ObjectID, ref: "Rival" },
+        stars: { type: Number, default: 0 },
+        starsUserIds: [{ type: mongoose.Schema.Types.ObjectID, ref: "User" }],
+      },
+    ],
     validate: [rivalsCount, "The rivalry should envolve at least 2 rivals"],
   },
   likesCount: {
