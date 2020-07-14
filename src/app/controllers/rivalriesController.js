@@ -115,7 +115,9 @@ router.get("/:rivalryId", async (req, res) => {
 //create
 router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { title, about, rivals, tags } = req.body;
+    const { about, rivals, tags } = req.body;
+    const title = `${rivals[0].name} x ${rivals[1].name}`;
+
     const rivalry = new Rivalry({
       title,
       about,
