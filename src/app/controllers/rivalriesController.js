@@ -46,6 +46,40 @@ const createRival = (rival, rivalry) => {
   });
 };
 
+//trending rivalries
+router.get("/trending", async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find()
+      .limit(2)
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
+
+//top rivalries
+router.get("/top", async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find()
+      .limit(3)
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
+
 //index
 router.get("/", async (req, res) => {
   try {
