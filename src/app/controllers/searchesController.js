@@ -1,5 +1,3 @@
-const { accentizeString } = require("../helpers/accent_strings");
-
 const { API_VERSION } = require("../../config/constants");
 const accentize = require("accentize");
 
