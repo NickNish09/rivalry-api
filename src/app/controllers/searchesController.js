@@ -1,3 +1,5 @@
+const { accentizeString } = require("../helpers/accent_strings");
+
 const { API_VERSION } = require("../../config/constants");
 
 const express = require("express");
@@ -12,10 +14,11 @@ router.get("/", async (req, res) => {
   let arrayOfQueries = req.query.q.toLowerCase().split(" ");
   let queryRegex = ".*";
   arrayOfQueries.map((word) => {
-    queryRegex += `${word}.*`;
+    queryRegex += `${accentizeString(word)}.*`;
   });
 
   let regex = new RegExp(queryRegex, "i");
+  console.log(regex);
   try {
     const rivals = await Rival.find({
       name: regex,
