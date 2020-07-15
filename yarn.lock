@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+accentize@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/accentize/-/accentize-1.0.0.tgz#87740bcde996c1e72141e7fd6fcff5ac13f4d2cf"
+  integrity sha512-aLla+eSLF5kAMFaxXUImQDdCG5QgONwGXH5NwxuYIRhvl10NEGwIx+OC2fIhfeYQdXYSJ+TnjILucx1i+2WiJw==
+
 accepts@~1.3.7:
   version "1.3.7"
   resolved "https://registry.yarnpkg.com/accepts/-/accepts-1.3.7.tgz#531bc726517a3b2b41f850021c6cc15eaab507cd"

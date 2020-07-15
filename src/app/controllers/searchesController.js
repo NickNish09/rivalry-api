@@ -1,6 +1,7 @@
 const { accentizeString } = require("../helpers/accent_strings");
 
 const { API_VERSION } = require("../../config/constants");
+const accentize = require("accentize");
 
 const express = require("express");
 
@@ -10,15 +11,8 @@ const Rival = require("../models/rival");
 
 // search for everything
 router.get("/", async (req, res) => {
-  // let regex = RegExp(`.*^${req.query.q.toLowerCase()}.*`, "i");
-  let arrayOfQueries = req.query.q.toLowerCase().split(" ");
-  let queryRegex = ".*";
-  arrayOfQueries.map((word) => {
-    queryRegex += `${accentizeString(word)}.*`;
-  });
-
-  let regex = new RegExp(queryRegex, "i");
-  console.log(regex);
+  let regex = accentize(req.query.q, true);
+  // console.log(regex);
   try {
     const rivals = await Rival.find({
       name: regex,
