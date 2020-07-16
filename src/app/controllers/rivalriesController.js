@@ -153,6 +153,10 @@ router.post("/", authMiddleware, async (req, res) => {
             // create the rival if not found
             envolvedRival = await createRival(rival, rivalry);
             await envolvedRival.save();
+          } else {
+            // if rival found push the rivalry to it
+            envolvedRival.rivalries.push(rivalry);
+            await envolvedRival.save();
           }
           rivalry.rivals.push({ rival: envolvedRival });
         }
