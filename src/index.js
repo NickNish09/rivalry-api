@@ -10,7 +10,7 @@ console.log(process.env);
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ credentials: true, origin: true }));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
