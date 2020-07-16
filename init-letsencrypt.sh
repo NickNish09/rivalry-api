@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(ec2-3-17-206-79.us-east-2.compute.amazonaws.com)
+domains=(rivalry-api.tk)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="devnicknish@gmail.com" # Adding a valid address is strongly recommended
