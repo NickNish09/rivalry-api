@@ -6,12 +6,11 @@ const cors = require("cors");
 if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
-// console.log(process.env);
+console.log(process.env);
 
 const app = express();
 
 app.use(cors());
-app.options("*", cors());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
