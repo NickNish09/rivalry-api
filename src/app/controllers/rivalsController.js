@@ -38,7 +38,14 @@ router.get("/search", async (req, res) => {
 router.get("/:rivalId", async (req, res) => {
   try {
     const rival = await Rival.findById(req.params.rivalId).populate([
-      { path: "rivalries", select: "title about" },
+      {
+        path: "rivalries",
+        select: "title about rivals user likesCount tags",
+        populate: [
+          { path: "rivals.rival", select: "name imageUrl" },
+          { path: "tags", select: "name" },
+        ],
+      },
     ]);
 
     return res.send({ rival });
