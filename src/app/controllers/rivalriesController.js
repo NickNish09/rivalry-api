@@ -55,6 +55,40 @@ const createRival = async (rival, rivalry) => {
   }
 };
 
+//rivalries of a user
+router.get("/byUser", authMiddleware, async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find({ user: req.userId })
+      .sort({ createdAt: -1 }) // order by most recent
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals.rival", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
+
+//rivalries that user liked
+router.get("/userLiked", authMiddleware, async (req, res) => {
+  try {
+    const rivalries = await Rivalry.find({ likes: req.userId })
+      .sort({ createdAt: -1 }) // order by most recent
+      .populate([
+        { path: "user", select: "name _id email" },
+        { path: "rivals.rival", select: "name about imageUrl" },
+        { path: "tags", select: "name" },
+      ]);
+
+    return res.send({ rivalries });
+  } catch (err) {
+    res.status(400).send({ error: "Error at listing rivalries" });
+  }
+});
+
 //trending rivalries
 router.get("/trending", async (req, res) => {
   try {
