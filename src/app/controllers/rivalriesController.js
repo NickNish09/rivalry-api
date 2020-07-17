@@ -298,6 +298,16 @@ router.put("/:rivalryId", authMiddleware, async (req, res) => {
 //delete
 router.delete("/:rivalryId", authMiddleware, async (req, res) => {
   try {
+    let rivalry = await Rivalry.findById(req.params.rivalryId);
+    console.log(req.userId);
+    console.log(rivalry.user);
+    if (req.userId.toString() !== rivalry.user.toString()) {
+      //user does not own the rivalry, so don't delete
+      return res
+        .status(400)
+        .send({ error: "Only the creator can delete the rivalry" });
+    }
+
     await Rivalry.findByIdAndRemove(req.params.rivalryId);
 
     return res.send({ msg: "Rivalry deleted" });
