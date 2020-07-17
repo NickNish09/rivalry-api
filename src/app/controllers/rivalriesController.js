@@ -233,16 +233,37 @@ router.post("/", authMiddleware, async (req, res) => {
 //update
 router.put("/:rivalryId", authMiddleware, async (req, res) => {
   try {
-    const { title, about, rivals } = req.body;
-    const rivalry = await Rivalry.findByIdAndUpdate(
-      req.params.rivalryId,
-      {
-        title,
-        about,
-      },
-      { new: true }
-    );
+    const { about, tags } = req.body;
+    console.log(req.body);
+    const rivalry = await Rivalry.findById(req.params.rivalryId);
+    rivalry.about = about;
+    let previousTags = rivalry.tags;
+    rivalry.tags = [];
 
+    if (tags !== undefined) {
+      await Promise.all(
+        tags.map(async (tag) => {
+          const envolvedTag = await Tag.findOne({ name: tag });
+          if (envolvedTag) {
+            if (previousTags.includes(envolvedTag)) {
+              // do nothing, already in the array
+            } else {
+              //was not associated, associate with rivalry
+              envolvedTag.rivalries.push(rivalry);
+            }
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          } else {
+            // create the tag and associate
+            const envolvedTag = new Tag({ name: tag });
+
+            envolvedTag.rivalries.push(rivalry);
+            await envolvedTag.save();
+            rivalry.tags.push(envolvedTag);
+          }
+        })
+      );
+    }
     // await Promise.all(
     //   rivals.map(async (rival) => {
     //     // TODO get rival already created and associate if exists
@@ -254,7 +275,16 @@ router.put("/:rivalryId", authMiddleware, async (req, res) => {
     //   })
     // );
     //
-    // await rivalry.save();
+
+    // TODO clean the rivalry references for the tag
+    // previousTags.map((tag) => {
+    //   if (rivalry.tags.filter((t) => t.name === tag.name).length < 1) {
+    //     // check if the tag was dessaociated of that rivalry
+    //     tag.rivalries = tag.rivalries.filter((riv) => riv._id !== rivalry._id); // removes that rivalry from tag rivalries
+    //     tag.save();
+    //   }
+    // });
+    await rivalry.save();
 
     return res.send({ rivalry });
   } catch (err) {
