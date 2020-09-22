@@ -10,6 +10,10 @@ const User = require("../models/user");
 
 const router = express.Router();
 
+const sendEmail = (email) => {
+  console.log(`email sent to ${email}`);
+};
+
 const generateToken = (params = {}) => {
   return jwt.sign(params, authConfig.secret, {
     expiresIn: 999 * 86400,
@@ -24,6 +28,8 @@ router.post("/register", async (req, res) => {
     const user = await User.create(req.body);
 
     user.password = undefined;
+    console.log('sending email...');
+    sendEmail(user.email);
 
     return res.send({ user, token: generateToken({ id: user.id }) });
   } catch (err) {

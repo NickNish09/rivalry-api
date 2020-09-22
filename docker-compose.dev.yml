@@ -8,6 +8,9 @@ services:
       - '3000:3000'
     links:
       - mongo
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
   mongo:
     container_name: mongo
     image: mongo
