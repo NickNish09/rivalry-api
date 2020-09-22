@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth");
 const { API_VERSION } = require("../../config/constants");
+const accentize = require("accentize");
 
 const router = express.Router();
 const Rival = require("../models/rival");
@@ -22,7 +23,7 @@ router.get("/", async (req, res) => {
 router.get("/search", async (req, res) => {
   // console.log(req.query);
   // return res.send({ options: [] });
-  let regex = RegExp(`.*^${req.query.name.toLowerCase()}.*`, "i");
+  let regex = accentize(req.query.name.toLowerCase());
   try {
     const rivals = await Rival.find({
       name: regex,

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Rivalry API",
   "scripts": {
-    "start": "nodemon ./src/index.js"
+    "start": "nodemon ./src/index.js",
+    "dev": "docker-compose -f docker-compose.dev.yml up"
   },
   "main": "index.js",
   "license": "MIT",
