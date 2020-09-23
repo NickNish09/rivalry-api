@@ -10,10 +10,6 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-const sendEmail = (email) => {
-  console.log(`email sent to ${email}`);
-};
-
 const generateToken = (params = {}) => {
   return jwt.sign(params, authConfig.secret, {
     expiresIn: 999 * 86400,
@@ -21,7 +17,7 @@ const generateToken = (params = {}) => {
 };
 
 router.post("/register", async (req, res) => {
-  const { email } = req.body;
+  const { email, name } = req.body;
   try {
     if (await User.findOne({ email }))
       return res.status(400).send({ error: "User already exists" });
@@ -29,7 +25,24 @@ router.post("/register", async (req, res) => {
 
     user.password = undefined;
     console.log('sending email...');
-    sendEmail(user.email);
+    mailer.sendMail(
+      {
+        to: email,
+        from: "devnicknish@gmail.com",
+        subject: "Welcome to Rivalries!",
+        template: "auth/welcome_email",
+        context: { name },
+      },
+      (err) => {
+        if (err)
+          return res
+            .status(400)
+            .send({ error: "Could not send welcome email" });
+  
+        return res.send();
+      }
+    );
+    console.log(`email sent to ${email}`);
 
     return res.send({ user, token: generateToken({ id: user.id }) });
   } catch (err) {
@@ -76,10 +89,12 @@ router.post("/forgot_password", async (req, res) => {
       {
         to: email,
         from: "devnicknish@gmail.com",
+        subject: "[RECOVER] - Rivalries",
         template: "auth/forgot_password",
         context: { token },
       },
       (err) => {
+        console.log(err);
         if (err)
           return res
             .status(400)
