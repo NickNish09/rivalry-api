@@ -51,5 +51,7 @@ describe('GET #index', () => {
     const rivalry = await createRivalry();
     const response = await request(app).get('/v1/rivalries')
     expect(response.body.rivalries.length).toEqual(1); // one rivalry created;
+    expect(response.body.rivalries[0]['title']).toEqual('Messi x CR7'); // testing attributes of the response
+    expect(response.body.rivalries[0]['about']).toEqual('Messi and CR7 are the best players of all time'); // testing attributes of the response
   })
 })
