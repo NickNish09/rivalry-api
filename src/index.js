@@ -1,19 +1,6 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+const app = require('./app');
+const http = require('http');
 
-// dotenv to set enviroment variables
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
-// console.log(process.env);
+const server = http.createServer(app);
 
-const app = express();
-
-app.use(cors());
-app.use(bodyParser.json({ limit: "200mb" }));
-app.use(bodyParser.urlencoded({ extended: false }));
-
-require("./app/controllers/index")(app);
-
-app.listen(3000);
+server.listen(3000);
