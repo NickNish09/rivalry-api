@@ -1,4 +1,4 @@
-const { User } = require('../src/app/models/user');
+const User = require('../src/app/models/user');
 const { factory } = require('./index');
 
 factory.define('user', User, {

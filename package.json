@@ -4,7 +4,8 @@
   "description": "Rivalry API",
   "scripts": {
     "start": "nodemon ./src/index.js",
-    "dev": "NODE_ENV=development nodemon ./src/index.js"
+    "dev": "NODE_ENV=development nodemon ./src/index.js",
+    "test": "NODE_ENV=test jest --testTimeout=10000"
   },
   "main": "index.js",
   "license": "MIT",

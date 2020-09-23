@@ -1,4 +1,33 @@
-const { User } = require('../../src/app/models/user');
+const mongoose = require('mongoose');
+const User = require('../../src/app/models/user');
+
+// reset the db for testing
+beforeAll(async (done) => {
+  const mongoUri = 'mongodb://localhost:27017/rivalry' // test db
+  mongoose.connect(mongoUri,
+      {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true
+      })
+      .then(result => {
+      console.log('MongoDB Conectado')
+      })
+      .catch(error => {
+      console.log(error)
+      })
+  await User.remove({}, function (err) {
+      console.log('collection removed')
+      console.log(err)
+  })
+  done()
+});
+
+// close db connection
+afterAll(async (done) => {
+  await mongoose.connection.close()
+  done()
+})
 
 describe('User model tests', () => {
   describe('User model validations', () => {
