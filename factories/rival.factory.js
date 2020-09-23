@@ -7,10 +7,11 @@ factory.define('rival', Rival, {
 });
 
 const createRival = async (name, about) => {
+  let rival;
   if(name !== undefined && about !== undefined){
-    const rival = await factory.build('rival', { name, about });
+    rival = await factory.build('rival', { name, about });
   } else {
-    const rival = await factory.build('rival');
+    rival = await factory.build('rival');
   }
   await rival.save();
   return rival;
