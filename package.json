@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "accentize": "^1.0.0",
-    "aws-sdk": "^2.713.0",
+    "aws-sdk": "^2.814.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
